@@ -2,6 +2,8 @@
   --bg: #ffffff;
   --ink: #111111;
   --line: #1a1a1a;
+  --page-pad-x: clamp(14px, 3vw, 28px);
+  --page-pad-y: clamp(14px, 3vw, 26px);
 }
 
 *,
@@ -21,12 +23,14 @@ body {
   background: var(--bg);
   color: var(--ink);
   font-family: "Space Mono", "Lucida Console", "Courier New", Courier, monospace;
+  overflow: hidden;
 }
 
 .escena {
   position: relative;
   width: 100%;
   min-height: 100vh;
+  min-height: 100svh;
   overflow: hidden;
   background: var(--bg);
 }
@@ -50,6 +54,7 @@ body {
   font-family: inherit;
   color: var(--ink);
   opacity: 0.94;
+  max-width: calc(100vw - (var(--page-pad-x) * 2));
 }
 
 .palabra-centro {
@@ -84,8 +89,18 @@ body {
 }
 
 @media (max-width: 640px) {
+  .escena {
+    min-height: 100svh;
+  }
+
   .etiqueta-esquina {
-    top: 12px;
-    left: 12px;
+    top: calc(var(--page-pad-y) + env(safe-area-inset-top, 0px));
+    left: calc(var(--page-pad-x) + env(safe-area-inset-left, 0px));
+  }
+
+  .palabra-centro {
+    top: 52%;
+    width: min(88vw, 360px);
+    text-align: center;
   }
 }

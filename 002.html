@@ -12,34 +12,47 @@
   <style>
     :root {
       --shift-left: 5cm;
+      --page-pad-x: clamp(18px, 4vw, 24px);
+      --page-pad-top: clamp(18px, 4vw, 24px);
+      --page-pad-bottom: clamp(24px, 5vw, 32px);
+      --mobile-top-offset: 72px;
     }
 
     * {
       box-sizing: border-box;
     }
 
+    #p5_loading {
+      display: none !important;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
+      min-height: 100svh;
       display: flex;
       flex-direction: column;
       font-family: "Space Mono", "Lucida Console", "Courier New", Courier, monospace;
       background: #fff;
       color: #111;
-      padding: 24px 24px 24px var(--shift-left);
+      padding:
+        calc(var(--page-pad-top) + env(safe-area-inset-top, 0px))
+        calc(var(--page-pad-x) + env(safe-area-inset-right, 0px))
+        calc(var(--page-pad-bottom) + env(safe-area-inset-bottom, 0px))
+        max(calc(var(--page-pad-x) + env(safe-area-inset-left, 0px)), var(--shift-left));
       overflow-x: hidden;
     }
 
     .back-arrow {
       position: fixed;
-      top: 24px;
-      left: 14px;
+      top: calc(var(--page-pad-top) + env(safe-area-inset-top, 0px));
+      left: max(14px, calc(var(--page-pad-x) + env(safe-area-inset-left, 0px) - 10px));
       z-index: 1000;
       color: #111;
       text-decoration: none;
-      font-size: 1.15cm;
-      width: 1.3cm;
-      height: 1.3cm;
+      font-size: clamp(24px, 5vw, 1.15cm);
+      width: clamp(44px, 8vw, 1.3cm);
+      height: clamp(44px, 8vw, 1.3cm);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -73,6 +86,7 @@
       justify-content: center;
       align-items: center;
       min-height: 52vh;
+      min-height: 52svh;
     }
 
     #contenedor-visual canvas {
@@ -82,8 +96,12 @@
     }
 
     @media (max-width: 900px) {
+      :root {
+        --shift-left: 24px;
+      }
+
       body {
-        padding-left: 24px;
+        padding-top: calc(var(--mobile-top-offset) + env(safe-area-inset-top, 0px));
       }
 
       main {
@@ -125,20 +143,45 @@
     let imagenes = [];
     let indiceActual = 0;
 
-    function preload() {
-      for (let i = 0; i < ARCHIVOS_IMAGEN.length; i++) {
-        imagenes.push(loadImage(`${CARPETA_MEDIA}${ARCHIVOS_IMAGEN[i]}`));
-      }
-      imagenActual = imagenes[0];
-      soundFormats("mp3");
-      audio = loadSound(`${CARPETA_MEDIA}archivoaudio1.mp3`);
-    }
-
     function setup() {
-      ajustarLienzo();
+      const limites = limitesContenedor();
+      lienzo = createCanvas(limites.maximoAncho, limites.maximoAlto);
+      lienzo.parent("contenedor-visual");
       frameRate(30);
       inicio = millis();
+      noLoop();
+      cargarMedia();
       iniciarAudio();
+    }
+
+    function cargarMedia() {
+      cargarImagenInicial();
+      window.setTimeout(cargarAudio, 250);
+    }
+
+    function cargarImagenInicial() {
+      loadImage(`${CARPETA_MEDIA}${ARCHIVOS_IMAGEN[0]}`, (imagen) => {
+        imagenes[0] = imagen;
+        imagenActual = imagen;
+        indiceActual = 0;
+        ajustarLienzo();
+        loop();
+        precargarImagenesRestantes();
+      });
+    }
+
+    function precargarImagenesRestantes() {
+      for (let indice = 1; indice < ARCHIVOS_IMAGEN.length; indice++) {
+        loadImage(`${CARPETA_MEDIA}${ARCHIVOS_IMAGEN[indice]}`, (imagen) => {
+          imagenes[indice] = imagen;
+        });
+      }
+    }
+
+    function cargarAudio() {
+      if (audio) return;
+      soundFormats("mp3");
+      audio = loadSound(`${CARPETA_MEDIA}archivoaudio1.mp3`);
     }
 
     function iniciarAudio() {
@@ -155,6 +198,11 @@
     }
 
     function draw() {
+      if (!imagenActual || !imagenAjustada) {
+        background(255);
+        return;
+      }
+
       let tiempo = millis() - inicio;
       actualizarImagen(tiempo);
       background(255);
@@ -275,8 +323,8 @@
         noStroke();
         ellipse(width / 2 + corrimientoX, height / 2 + corrimientoY, tamanoCirculo, tamanoCirculo);
       } else if (tiempo < DURACION_BUCLE_MS) {
-        indiceActual = 0;
-        imagenActual = imagenes[0];
+        indiceActual = imagenes[0] ? 0 : indiceActual;
+        imagenActual = imagenes[0] || imagenActual;
         imagenAjustada = imagenActual.get();
         imagenAjustada.resize(width, height);
         inicio = millis();
@@ -286,6 +334,7 @@
     function actualizarImagen(tiempo) {
       if (!imagenes.length) return;
       const siguienteIndice = floor(tiempo / CAMBIO_IMAGEN_MS) % imagenes.length;
+      if (!imagenes[siguienteIndice]) return;
       if (siguienteIndice === indiceActual) return;
       indiceActual = siguienteIndice;
       imagenActual = imagenes[indiceActual];
@@ -302,7 +351,7 @@
     }
 
     function ajustarLienzo() {
-      let proporcion = imagenActual.width / imagenActual.height;
+      let proporcion = imagenActual ? imagenActual.width / imagenActual.height : 1;
       let limites = limitesContenedor();
       let ancho = limites.maximoAncho;
       let alto = ancho / proporcion;
@@ -312,15 +361,14 @@
         ancho = alto * proporcion;
       }
 
-      if (!lienzo) {
-        lienzo = createCanvas(ancho, alto);
-        lienzo.parent("contenedor-visual");
-      } else {
+      if (lienzo) {
         resizeCanvas(ancho, alto);
       }
 
-      imagenAjustada = imagenActual.get();
-      imagenAjustada.resize(width, height);
+      if (imagenActual) {
+        imagenAjustada = imagenActual.get();
+        imagenAjustada.resize(width, height);
+      }
     }
 
     function windowResized() {

@@ -10,6 +10,10 @@
   <style>
     :root {
       --shift-left: 5cm;
+      --page-pad-x: clamp(18px, 4vw, 24px);
+      --page-pad-top: clamp(18px, 4vw, 24px);
+      --page-pad-bottom: clamp(24px, 5vw, 32px);
+      --mobile-top-offset: 72px;
     }
 
     * {
@@ -19,25 +23,30 @@
     body {
       margin: 0;
       min-height: 100vh;
+      min-height: 100svh;
       display: flex;
       flex-direction: column;
       font-family: "Space Mono", "Lucida Console", "Courier New", Courier, monospace;
       background: #fff;
       color: #111;
-      padding: 24px 24px 24px var(--shift-left);
+      padding:
+        calc(var(--page-pad-top) + env(safe-area-inset-top, 0px))
+        calc(var(--page-pad-x) + env(safe-area-inset-right, 0px))
+        calc(var(--page-pad-bottom) + env(safe-area-inset-bottom, 0px))
+        max(calc(var(--page-pad-x) + env(safe-area-inset-left, 0px)), var(--shift-left));
       overflow-x: hidden;
     }
 
     .back-arrow {
       position: fixed;
-      top: 24px;
-      left: 14px;
+      top: calc(var(--page-pad-top) + env(safe-area-inset-top, 0px));
+      left: max(14px, calc(var(--page-pad-x) + env(safe-area-inset-left, 0px) - 10px));
       z-index: 1000;
       color: #111;
       text-decoration: none;
-      font-size: 1.15cm;
-      width: 1.3cm;
-      height: 1.3cm;
+      font-size: clamp(24px, 5vw, 1.15cm);
+      width: clamp(44px, 8vw, 1.3cm);
+      height: clamp(44px, 8vw, 1.3cm);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -66,9 +75,20 @@
       text-align: center;
     }
 
+    .audio iframe {
+      display: block;
+      width: 100%;
+      min-height: clamp(220px, 42vw, 300px);
+      border: 0;
+    }
+
     @media (max-width: 900px) {
+      :root {
+        --shift-left: 24px;
+      }
+
       body {
-        padding-left: 24px;
+        padding-top: calc(var(--mobile-top-offset) + env(safe-area-inset-top, 0px));
       }
 
       .audio {

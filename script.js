@@ -94,8 +94,9 @@ function activarLinksPuntos() {
 }
 
 function alRedimensionar() {
-  const ancho = window.innerWidth;
-  const alto = window.innerHeight;
+  const viewport = window.visualViewport;
+  const ancho = Math.round(viewport ? viewport.width : window.innerWidth);
+  const alto = Math.round(viewport ? viewport.height : window.innerHeight);
   svg.setAttribute("viewBox", `0 0 ${ancho} ${alto}`);
   svg.setAttribute("width", `${ancho}`);
   svg.setAttribute("height", `${alto}`);
@@ -119,6 +120,10 @@ function iniciar() {
       frameResize = null;
     });
   });
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", alRedimensionar);
+  }
 }
 
 iniciar();
