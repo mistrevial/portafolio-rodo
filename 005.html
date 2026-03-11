@@ -4,25 +4,51 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>005</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
   <style>
     body {
       margin: 0;
       min-height: 100vh;
-      display: grid;
-      place-items: center;
-      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      font-family: "Space Mono", "Lucida Console", "Courier New", Courier, monospace;
       background: #fff;
       color: #111;
+      padding: 24px 24px 24px 5cm;
+      box-sizing: border-box;
     }
-    main { text-align: center; }
-    a { color: #111; }
+    .back-arrow {
+      position: fixed;
+      top: 24px;
+      left: 14px;
+      z-index: 1000;
+      color: #111;
+      text-decoration: none;
+      font-size: 1.15cm;
+      width: 1.3cm;
+      height: 1.3cm;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      font-weight: 700;
+      padding: 0;
+    }
+    .back-arrow:hover { opacity: 0.7; }
+    main { text-align: left; }
+    @media (max-width: 900px) {
+      body { padding-left: 24px; }
+    }
   </style>
 </head>
 <body>
+  <a class="back-arrow" href="index.html" aria-label="Volver al index">&#8592;</a>
   <main>
     <h1>005</h1>
     <p>Esta es la pagina 005.</p>
-    <a href="index.html">Volver</a>
   </main>
 </body>
 </html>

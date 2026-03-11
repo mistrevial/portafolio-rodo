@@ -4,25 +4,312 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>002</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+  <script src="CODIGOP5_ArchivosOlvidados1/p5.js"></script>
+  <script src="CODIGOP5_ArchivosOlvidados1/p5.sound.min.js"></script>
   <style>
+    :root {
+      --shift-left: 5cm;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
-      display: grid;
-      place-items: center;
-      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      font-family: "Space Mono", "Lucida Console", "Courier New", Courier, monospace;
       background: #fff;
       color: #111;
+      padding: 24px 24px 24px var(--shift-left);
+      overflow-x: hidden;
     }
-    main { text-align: center; }
-    a { color: #111; }
+
+    .back-arrow {
+      position: fixed;
+      top: 24px;
+      left: 14px;
+      z-index: 1000;
+      color: #111;
+      text-decoration: none;
+      font-size: 1.15cm;
+      width: 1.3cm;
+      height: 1.3cm;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      font-weight: 700;
+      padding: 0;
+    }
+
+    .back-arrow:hover {
+      opacity: 0.7;
+    }
+
+    .titulo {
+      font-size: clamp(24px, 3vw, 34px);
+      font-weight: 500;
+      margin: 0 0 20px;
+      align-self: flex-start;
+      text-align: left;
+    }
+
+    main {
+      width: min(1100px, 100%);
+      margin: 0;
+      align-self: center;
+      transform: translateX(calc((24px - var(--shift-left)) / 2));
+    }
+
+    #p5-container {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 52vh;
+    }
+
+    #p5-container canvas {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+
+    @media (max-width: 900px) {
+      body {
+        padding-left: 24px;
+      }
+
+      main {
+        transform: none;
+      }
+    }
   </style>
 </head>
 <body>
+  <a class="back-arrow" href="index.html" aria-label="Volver al index">&#8592;</a>
+  <h1 class="titulo">002 Archivos Olvidados</h1>
   <main>
-    <h1>002</h1>
-    <p>Esta es la pagina 002.</p>
-    <a href="index.html">Volver</a>
+    <div id="p5-container" aria-label="Pieza visual p5 de Archivos Olvidados"></div>
   </main>
+
+  <script>
+    let img;
+    let imgResized;
+    let canvas;
+    let startTime;
+    let pieceSize = 50;
+    let mySound;
+    const ASSET_BASE = "CODIGOP5_ArchivosOlvidados1/";
+    const IMAGE_FILES = ["01.jpg", "0101.jpg", "02.jpg", "03.jpg", "04.jpg", "10.jpg"];
+    const IMAGE_SWITCH_MS = 7000;
+    let images = [];
+    let currentImgIndex = 0;
+
+    function preload() {
+      for (let i = 0; i < IMAGE_FILES.length; i++) {
+        images.push(loadImage(`${ASSET_BASE}${IMAGE_FILES[i]}`));
+      }
+      img = images[0];
+      soundFormats("mp3");
+      mySound = loadSound(`${ASSET_BASE}archivoaudio1.mp3`);
+    }
+
+    function setup() {
+      adjustCanvas();
+      frameRate(30);
+      startTime = millis();
+      tryStartSound();
+    }
+
+    function tryStartSound() {
+      if (!mySound) return;
+      if (!mySound.isPlaying()) {
+        mySound.setLoop(true);
+        mySound.play();
+      }
+    }
+
+    function mousePressed() {
+      userStartAudio();
+      tryStartSound();
+    }
+
+    function draw() {
+      let t = millis() - startTime;
+      updateImageByTime(t);
+      background(255);
+
+      if (t < 6000) {
+        imgResized.loadPixels();
+        for (let y = 0; y < imgResized.height; y++) {
+          let offset = sin(y * 0.05 + t * 0.002) * 5;
+          copy(imgResized, 0, y, imgResized.width, 1, offset, y, imgResized.width, 1);
+        }
+      } else if (t < 20000) {
+        imgResized.loadPixels();
+        let progress = map(t, 6000, 20000, 0, 1);
+        let spacing = lerp(2, 30, progress);
+
+        for (let y = 0; y < imgResized.height; y += spacing) {
+          for (let x = 0; x < imgResized.width; x += spacing) {
+            let index = (int(x) + int(y) * imgResized.width) * 4;
+            let r = imgResized.pixels[index];
+            let g = imgResized.pixels[index + 1];
+            let b = imgResized.pixels[index + 2];
+            let gray = (r + g + b) / 3;
+            let alpha = map(progress, 0, 1, 255, 80);
+            fill(gray, alpha);
+            noStroke();
+            ellipse(x, y, spacing * 0.2, spacing * 0.2);
+          }
+        }
+
+        let glitchAmount = map(t, 6000, 20000, 2, 30);
+        for (let y = 0; y < imgResized.height; y++) {
+          let xOffset = floor(random(-glitchAmount, glitchAmount));
+          copy(imgResized, 0, y, imgResized.width, 1, xOffset, y, imgResized.width, 1);
+        }
+      } else if (t < 26000) {
+        imgResized.loadPixels();
+        let gridSize = 2;
+        for (let y = 0; y < imgResized.height; y += gridSize) {
+          for (let x = 0; x < imgResized.width; x += gridSize) {
+            let index = (int(x) + int(y) * imgResized.width) * 4;
+            let r = imgResized.pixels[index];
+            let g = imgResized.pixels[index + 1];
+            let b = imgResized.pixels[index + 2];
+            let displacement = sin(millis() * 0.005 + x * y * 0.01) * 20;
+            fill(r, g, b);
+            noStroke();
+            rect(x + displacement, y + displacement, gridSize, gridSize);
+          }
+        }
+      } else if (t < 30000) {
+        let progress = map(t, 26000, 30000, 0, 1);
+        let displacementFactor = lerp(5, 30, progress);
+        imgResized.loadPixels();
+
+        for (let y = 0; y < imgResized.height; y++) {
+          for (let x = 0; x < imgResized.width; x++) {
+            let index = (x + y * imgResized.width) * 4;
+            let r = imgResized.pixels[index];
+            let g = imgResized.pixels[index + 1];
+            let b = imgResized.pixels[index + 2];
+            let offsetX = sin(millis() * 0.002 + y * 0.1) * displacementFactor;
+            let offsetY = cos(millis() * 0.002 + x * 0.1) * displacementFactor;
+            let newX = constrain(x + offsetX, 0, imgResized.width - 1);
+            let newY = constrain(y + offsetY, 0, imgResized.height - 1);
+            let newIndex = (int(newX) + int(newY) * imgResized.width) * 4;
+            imgResized.pixels[newIndex] = r;
+            imgResized.pixels[newIndex + 1] = g;
+            imgResized.pixels[newIndex + 2] = b;
+          }
+        }
+
+        imgResized.updatePixels();
+        image(imgResized, 0, 0);
+      } else if (t < 36000) {
+        let tinyPieceSize = pieceSize / 8;
+        let piecesTiny = [];
+        let shuffledPiecesTiny = [];
+        let totalPiecesXtiny = floor(width / tinyPieceSize);
+        let totalPiecesYtiny = floor(height / tinyPieceSize);
+
+        for (let y = 0; y < totalPiecesYtiny; y++) {
+          for (let x = 0; x < totalPiecesXtiny; x++) {
+            let sx = x * tinyPieceSize;
+            let sy = y * tinyPieceSize;
+            let px = x * tinyPieceSize;
+            let py = y * tinyPieceSize;
+            piecesTiny.push({ sx, sy, x: px, y: py });
+          }
+        }
+
+        shuffledPiecesTiny = shuffle([...piecesTiny]);
+
+        for (let i = 0; i < piecesTiny.length; i++) {
+          let p = piecesTiny[i];
+          let s = shuffledPiecesTiny[i];
+          let jitterX = random(-3, 3);
+          let jitterY = random(-3, 3);
+
+          image(
+            imgResized,
+            s.x + jitterX,
+            s.y + jitterY,
+            tinyPieceSize,
+            tinyPieceSize,
+            p.sx,
+            p.sy,
+            tinyPieceSize,
+            tinyPieceSize
+          );
+        }
+      } else if (t < 41000) {
+        background(0);
+        let pulse = sin(t * 0.1) * 8 + random(-3, 3);
+        let circleSize = 10 + pulse;
+        let offsetX = random(-2, 2);
+        let offsetY = random(-2, 2);
+        fill(255);
+        noStroke();
+        ellipse(width / 2 + offsetX, height / 2 + offsetY, circleSize, circleSize);
+      } else if (t < 47000) {
+        background(0);
+        startTime = millis();
+      }
+    }
+
+    function updateImageByTime(t) {
+      if (!images.length) return;
+      const nextIndex = floor(t / IMAGE_SWITCH_MS) % images.length;
+      if (nextIndex === currentImgIndex) return;
+      currentImgIndex = nextIndex;
+      img = images[currentImgIndex];
+      imgResized = img.get();
+      imgResized.resize(width, height);
+    }
+
+    function getContainerLimits() {
+      const container = document.getElementById("p5-container");
+      const rect = container.getBoundingClientRect();
+      const maxW = Math.max(280, rect.width);
+      const maxH = Math.max(240, window.innerHeight - 180);
+      return { maxW, maxH };
+    }
+
+    function adjustCanvas() {
+      let aspectRatio = img.width / img.height;
+      let limits = getContainerLimits();
+      let w = limits.maxW;
+      let h = w / aspectRatio;
+
+      if (h > limits.maxH) {
+        h = limits.maxH;
+        w = h * aspectRatio;
+      }
+
+      if (!canvas) {
+        canvas = createCanvas(w, h);
+        canvas.parent("p5-container");
+      } else {
+        resizeCanvas(w, h);
+      }
+
+      imgResized = img.get();
+      imgResized.resize(width, height);
+    }
+
+    function windowResized() {
+      adjustCanvas();
+    }
+  </script>
 </body>
 </html>
