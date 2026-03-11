@@ -124,6 +124,8 @@
     let inicio;
     let tamanoPieza = 50;
     let audio;
+    let audioListo = false;
+    let audioActivacionPendiente = false;
     const CARPETA_MEDIA = "archivos-olvidados-media/";
     const ARCHIVOS_IMAGEN = [
       "01.jpg",
@@ -181,20 +183,42 @@
     function cargarAudio() {
       if (audio) return;
       soundFormats("mp3");
-      audio = loadSound(`${CARPETA_MEDIA}archivoaudio1.mp3`);
+      audio = loadSound(
+        `${CARPETA_MEDIA}archivoaudio1.mp3`,
+        () => {
+          audioListo = true;
+          if (audioActivacionPendiente) {
+            iniciarAudio();
+          }
+        },
+        () => {
+          audio = null;
+          audioListo = false;
+        }
+      );
     }
 
     function iniciarAudio() {
-      if (!audio) return;
+      if (!audio || !audioListo) return;
       if (!audio.isPlaying()) {
         audio.setLoop(true);
         audio.play();
       }
     }
 
-    function mousePressed() {
+    function activarAudio() {
+      audioActivacionPendiente = true;
       userStartAudio();
       iniciarAudio();
+    }
+
+    function mousePressed() {
+      activarAudio();
+    }
+
+    function touchStarted() {
+      activarAudio();
+      return false;
     }
 
     function draw() {
