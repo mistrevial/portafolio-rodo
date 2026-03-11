@@ -23,7 +23,7 @@ body {
   font-family: "Space Mono", "Lucida Console", "Courier New", Courier, monospace;
 }
 
-.scene {
+.escena {
   position: relative;
   width: 100%;
   min-height: 100vh;
@@ -31,7 +31,7 @@ body {
   background: var(--bg);
 }
 
-.spiral-svg {
+.espiral-svg {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -39,7 +39,7 @@ body {
   display: block;
 }
 
-.corner-label {
+.etiqueta-esquina {
   position: absolute;
   top: clamp(14px, 2.2vw, 26px);
   left: clamp(14px, 2.2vw, 28px);
@@ -52,7 +52,7 @@ body {
   opacity: 0.94;
 }
 
-.center-word {
+.palabra-centro {
   position: absolute;
   top: 54%;
   left: 50%;
@@ -68,7 +68,7 @@ body {
   font-family: inherit;
 }
 
-.spiral-path {
+.trazo-espiral {
   fill: none;
   stroke: var(--line);
   stroke-width: 2.1;
@@ -78,13 +78,13 @@ body {
   opacity: 0.9;
 }
 
-.orbit-dot {
+.punto-orbita {
   fill: var(--ink);
   cursor: pointer;
 }
 
 @media (max-width: 640px) {
-  .corner-label {
+  .etiqueta-esquina {
     top: 12px;
     left: 12px;
   }

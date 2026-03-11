@@ -1,4 +1,4 @@
-const CANTIDAD_PUNTOS = 5;
+﻿const CANTIDAD_PUNTOS = 5;
 const VUELTAS_ESPIRAL = 3;
 const ESCALA_ESPIRAL = 0.86;
 const TAMANO_PUNTO = 10;
@@ -8,7 +8,7 @@ const DESFASE_PUNTOS = 0.08;
 const PAGINAS_PUNTOS = ["001.html", "002.html", "003.html", "004.html", "005.html"];
 
 const ESPACIO_SVG = "http://www.w3.org/2000/svg";
-const svg = document.getElementById("spiral-svg");
+const svg = document.getElementById("espiral-svg");
 
 let rutaEspiral = null;
 let puntos = [];
@@ -16,7 +16,7 @@ let largoTotal = 1;
 
 function crearRuta() {
   const ruta = document.createElementNS(ESPACIO_SVG, "path");
-  ruta.classList.add("spiral-path");
+  ruta.classList.add("trazo-espiral");
   svg.appendChild(ruta);
   return ruta;
 }
@@ -26,10 +26,10 @@ function crearPuntos() {
 
   for (let i = 0; i < CANTIDAD_PUNTOS; i += 1) {
     const punto = document.createElementNS(ESPACIO_SVG, "circle");
-    punto.classList.add("orbit-dot");
+    punto.classList.add("punto-orbita");
     punto.setAttribute("tabindex", "0");
     punto.setAttribute("role", "link");
-    punto.setAttribute("aria-label", `Abrir pagina ${i + 1}`);
+    punto.setAttribute("aria-label", `Abrir página ${i + 1}`);
     svg.appendChild(punto);
     listaPuntos.push({
       elemento: punto,
@@ -122,3 +122,4 @@ function iniciar() {
 }
 
 iniciar();
+

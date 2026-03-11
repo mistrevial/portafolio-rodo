@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
-  <script src="CODIGOP5_ArchivosOlvidados1/p5.js"></script>
-  <script src="CODIGOP5_ArchivosOlvidados1/p5.sound.min.js"></script>
+  <script src="archivos-olvidados-media/p5.js"></script>
+  <script src="archivos-olvidados-media/p5.sound.min.js"></script>
   <style>
     :root {
       --shift-left: 5cm;
@@ -67,7 +67,7 @@
       transform: translateX(calc((24px - var(--shift-left)) / 2));
     }
 
-    #p5-container {
+    #contenedor-visual {
       width: 100%;
       display: flex;
       justify-content: center;
@@ -75,7 +75,7 @@
       min-height: 52vh;
     }
 
-    #p5-container canvas {
+    #contenedor-visual canvas {
       display: block;
       max-width: 100%;
       height: auto;
@@ -96,219 +96,235 @@
   <a class="back-arrow" href="index.html" aria-label="Volver al index">&#8592;</a>
   <h1 class="titulo">002 Archivos Olvidados</h1>
   <main>
-    <div id="p5-container" aria-label="Pieza visual p5 de Archivos Olvidados"></div>
+    <div id="contenedor-visual" aria-label="Pieza visual de Archivos Olvidados"></div>
   </main>
 
   <script>
-    let img;
-    let imgResized;
-    let canvas;
-    let startTime;
-    let pieceSize = 50;
-    let mySound;
-    const ASSET_BASE = "CODIGOP5_ArchivosOlvidados1/";
-    const IMAGE_FILES = ["01.jpg", "0101.jpg", "02.jpg", "03.jpg", "04.jpg", "10.jpg"];
-    const IMAGE_SWITCH_MS = 7000;
-    let images = [];
-    let currentImgIndex = 0;
+    let imagenActual;
+    let imagenAjustada;
+    let lienzo;
+    let inicio;
+    let tamanoPieza = 50;
+    let audio;
+    const CARPETA_MEDIA = "archivos-olvidados-media/";
+    const ARCHIVOS_IMAGEN = [
+      "01.jpg",
+      "0101.jpg",
+      "02.jpg",
+      "03.jpg",
+      "04.jpg",
+      "05.jpg",
+      "06.jpg",
+      "07.jpg",
+      "08.jpg",
+      "09.jpg",
+      "10.jpg"
+    ];
+    const DURACION_BUCLE_MS = 47000;
+    const CAMBIO_IMAGEN_MS = DURACION_BUCLE_MS / ARCHIVOS_IMAGEN.length;
+    let imagenes = [];
+    let indiceActual = 0;
 
     function preload() {
-      for (let i = 0; i < IMAGE_FILES.length; i++) {
-        images.push(loadImage(`${ASSET_BASE}${IMAGE_FILES[i]}`));
+      for (let i = 0; i < ARCHIVOS_IMAGEN.length; i++) {
+        imagenes.push(loadImage(`${CARPETA_MEDIA}${ARCHIVOS_IMAGEN[i]}`));
       }
-      img = images[0];
+      imagenActual = imagenes[0];
       soundFormats("mp3");
-      mySound = loadSound(`${ASSET_BASE}archivoaudio1.mp3`);
+      audio = loadSound(`${CARPETA_MEDIA}archivoaudio1.mp3`);
     }
 
     function setup() {
-      adjustCanvas();
+      ajustarLienzo();
       frameRate(30);
-      startTime = millis();
-      tryStartSound();
+      inicio = millis();
+      iniciarAudio();
     }
 
-    function tryStartSound() {
-      if (!mySound) return;
-      if (!mySound.isPlaying()) {
-        mySound.setLoop(true);
-        mySound.play();
+    function iniciarAudio() {
+      if (!audio) return;
+      if (!audio.isPlaying()) {
+        audio.setLoop(true);
+        audio.play();
       }
     }
 
     function mousePressed() {
       userStartAudio();
-      tryStartSound();
+      iniciarAudio();
     }
 
     function draw() {
-      let t = millis() - startTime;
-      updateImageByTime(t);
+      let tiempo = millis() - inicio;
+      actualizarImagen(tiempo);
       background(255);
 
-      if (t < 6000) {
-        imgResized.loadPixels();
-        for (let y = 0; y < imgResized.height; y++) {
-          let offset = sin(y * 0.05 + t * 0.002) * 5;
-          copy(imgResized, 0, y, imgResized.width, 1, offset, y, imgResized.width, 1);
+      if (tiempo < 6000) {
+        imagenAjustada.loadPixels();
+        for (let y = 0; y < imagenAjustada.height; y++) {
+          let desplazamiento = sin(y * 0.05 + tiempo * 0.002) * 5;
+          copy(imagenAjustada, 0, y, imagenAjustada.width, 1, desplazamiento, y, imagenAjustada.width, 1);
         }
-      } else if (t < 20000) {
-        imgResized.loadPixels();
-        let progress = map(t, 6000, 20000, 0, 1);
-        let spacing = lerp(2, 30, progress);
+      } else if (tiempo < 20000) {
+        imagenAjustada.loadPixels();
+        let progreso = map(tiempo, 6000, 20000, 0, 1);
+        let separacion = lerp(2, 30, progreso);
 
-        for (let y = 0; y < imgResized.height; y += spacing) {
-          for (let x = 0; x < imgResized.width; x += spacing) {
-            let index = (int(x) + int(y) * imgResized.width) * 4;
-            let r = imgResized.pixels[index];
-            let g = imgResized.pixels[index + 1];
-            let b = imgResized.pixels[index + 2];
-            let gray = (r + g + b) / 3;
-            let alpha = map(progress, 0, 1, 255, 80);
-            fill(gray, alpha);
+        for (let y = 0; y < imagenAjustada.height; y += separacion) {
+          for (let x = 0; x < imagenAjustada.width; x += separacion) {
+            let indice = (int(x) + int(y) * imagenAjustada.width) * 4;
+            let rojo = imagenAjustada.pixels[indice];
+            let verde = imagenAjustada.pixels[indice + 1];
+            let azul = imagenAjustada.pixels[indice + 2];
+            let gris = (rojo + verde + azul) / 3;
+            let opacidad = map(progreso, 0, 1, 255, 80);
+            fill(gris, opacidad);
             noStroke();
-            ellipse(x, y, spacing * 0.2, spacing * 0.2);
+            ellipse(x, y, separacion * 0.2, separacion * 0.2);
           }
         }
 
-        let glitchAmount = map(t, 6000, 20000, 2, 30);
-        for (let y = 0; y < imgResized.height; y++) {
-          let xOffset = floor(random(-glitchAmount, glitchAmount));
-          copy(imgResized, 0, y, imgResized.width, 1, xOffset, y, imgResized.width, 1);
+        let intensidad = map(tiempo, 6000, 20000, 2, 30);
+        for (let y = 0; y < imagenAjustada.height; y++) {
+          let corrimientoX = floor(random(-intensidad, intensidad));
+          copy(imagenAjustada, 0, y, imagenAjustada.width, 1, corrimientoX, y, imagenAjustada.width, 1);
         }
-      } else if (t < 26000) {
-        imgResized.loadPixels();
-        let gridSize = 2;
-        for (let y = 0; y < imgResized.height; y += gridSize) {
-          for (let x = 0; x < imgResized.width; x += gridSize) {
-            let index = (int(x) + int(y) * imgResized.width) * 4;
-            let r = imgResized.pixels[index];
-            let g = imgResized.pixels[index + 1];
-            let b = imgResized.pixels[index + 2];
-            let displacement = sin(millis() * 0.005 + x * y * 0.01) * 20;
-            fill(r, g, b);
+      } else if (tiempo < 26000) {
+        imagenAjustada.loadPixels();
+        let cuadricula = 2;
+        for (let y = 0; y < imagenAjustada.height; y += cuadricula) {
+          for (let x = 0; x < imagenAjustada.width; x += cuadricula) {
+            let indice = (int(x) + int(y) * imagenAjustada.width) * 4;
+            let rojo = imagenAjustada.pixels[indice];
+            let verde = imagenAjustada.pixels[indice + 1];
+            let azul = imagenAjustada.pixels[indice + 2];
+            let desplazamiento = sin(millis() * 0.005 + x * y * 0.01) * 20;
+            fill(rojo, verde, azul);
             noStroke();
-            rect(x + displacement, y + displacement, gridSize, gridSize);
+            rect(x + desplazamiento, y + desplazamiento, cuadricula, cuadricula);
           }
         }
-      } else if (t < 30000) {
-        let progress = map(t, 26000, 30000, 0, 1);
-        let displacementFactor = lerp(5, 30, progress);
-        imgResized.loadPixels();
+      } else if (tiempo < 30000) {
+        let progreso = map(tiempo, 26000, 30000, 0, 1);
+        let fuerza = lerp(5, 30, progreso);
+        imagenAjustada.loadPixels();
 
-        for (let y = 0; y < imgResized.height; y++) {
-          for (let x = 0; x < imgResized.width; x++) {
-            let index = (x + y * imgResized.width) * 4;
-            let r = imgResized.pixels[index];
-            let g = imgResized.pixels[index + 1];
-            let b = imgResized.pixels[index + 2];
-            let offsetX = sin(millis() * 0.002 + y * 0.1) * displacementFactor;
-            let offsetY = cos(millis() * 0.002 + x * 0.1) * displacementFactor;
-            let newX = constrain(x + offsetX, 0, imgResized.width - 1);
-            let newY = constrain(y + offsetY, 0, imgResized.height - 1);
-            let newIndex = (int(newX) + int(newY) * imgResized.width) * 4;
-            imgResized.pixels[newIndex] = r;
-            imgResized.pixels[newIndex + 1] = g;
-            imgResized.pixels[newIndex + 2] = b;
-          }
-        }
-
-        imgResized.updatePixels();
-        image(imgResized, 0, 0);
-      } else if (t < 36000) {
-        let tinyPieceSize = pieceSize / 8;
-        let piecesTiny = [];
-        let shuffledPiecesTiny = [];
-        let totalPiecesXtiny = floor(width / tinyPieceSize);
-        let totalPiecesYtiny = floor(height / tinyPieceSize);
-
-        for (let y = 0; y < totalPiecesYtiny; y++) {
-          for (let x = 0; x < totalPiecesXtiny; x++) {
-            let sx = x * tinyPieceSize;
-            let sy = y * tinyPieceSize;
-            let px = x * tinyPieceSize;
-            let py = y * tinyPieceSize;
-            piecesTiny.push({ sx, sy, x: px, y: py });
+        for (let y = 0; y < imagenAjustada.height; y++) {
+          for (let x = 0; x < imagenAjustada.width; x++) {
+            let indice = (x + y * imagenAjustada.width) * 4;
+            let rojo = imagenAjustada.pixels[indice];
+            let verde = imagenAjustada.pixels[indice + 1];
+            let azul = imagenAjustada.pixels[indice + 2];
+            let corrimientoX = sin(millis() * 0.002 + y * 0.1) * fuerza;
+            let corrimientoY = cos(millis() * 0.002 + x * 0.1) * fuerza;
+            let nuevoX = constrain(x + corrimientoX, 0, imagenAjustada.width - 1);
+            let nuevoY = constrain(y + corrimientoY, 0, imagenAjustada.height - 1);
+            let nuevoIndice = (int(nuevoX) + int(nuevoY) * imagenAjustada.width) * 4;
+            imagenAjustada.pixels[nuevoIndice] = rojo;
+            imagenAjustada.pixels[nuevoIndice + 1] = verde;
+            imagenAjustada.pixels[nuevoIndice + 2] = azul;
           }
         }
 
-        shuffledPiecesTiny = shuffle([...piecesTiny]);
+        imagenAjustada.updatePixels();
+        image(imagenAjustada, 0, 0);
+      } else if (tiempo < 36000) {
+        let tamanoMini = tamanoPieza / 8;
+        let piezas = [];
+        let piezasMezcladas = [];
+        let totalX = floor(width / tamanoMini);
+        let totalY = floor(height / tamanoMini);
 
-        for (let i = 0; i < piecesTiny.length; i++) {
-          let p = piecesTiny[i];
-          let s = shuffledPiecesTiny[i];
-          let jitterX = random(-3, 3);
-          let jitterY = random(-3, 3);
+        for (let y = 0; y < totalY; y++) {
+          for (let x = 0; x < totalX; x++) {
+            let origenX = x * tamanoMini;
+            let origenY = y * tamanoMini;
+            let destinoX = x * tamanoMini;
+            let destinoY = y * tamanoMini;
+            piezas.push({ origenX, origenY, destinoX, destinoY });
+          }
+        }
+
+        piezasMezcladas = shuffle([...piezas]);
+
+        for (let i = 0; i < piezas.length; i++) {
+          let pieza = piezas[i];
+          let destino = piezasMezcladas[i];
+          let temblorX = random(-3, 3);
+          let temblorY = random(-3, 3);
 
           image(
-            imgResized,
-            s.x + jitterX,
-            s.y + jitterY,
-            tinyPieceSize,
-            tinyPieceSize,
-            p.sx,
-            p.sy,
-            tinyPieceSize,
-            tinyPieceSize
+            imagenAjustada,
+            destino.destinoX + temblorX,
+            destino.destinoY + temblorY,
+            tamanoMini,
+            tamanoMini,
+            pieza.origenX,
+            pieza.origenY,
+            tamanoMini,
+            tamanoMini
           );
         }
-      } else if (t < 41000) {
+      } else if (tiempo < 41000) {
         background(0);
-        let pulse = sin(t * 0.1) * 8 + random(-3, 3);
-        let circleSize = 10 + pulse;
-        let offsetX = random(-2, 2);
-        let offsetY = random(-2, 2);
+        let pulso = sin(tiempo * 0.1) * 8 + random(-3, 3);
+        let tamanoCirculo = 10 + pulso;
+        let corrimientoX = random(-2, 2);
+        let corrimientoY = random(-2, 2);
         fill(255);
         noStroke();
-        ellipse(width / 2 + offsetX, height / 2 + offsetY, circleSize, circleSize);
-      } else if (t < 47000) {
-        background(0);
-        startTime = millis();
+        ellipse(width / 2 + corrimientoX, height / 2 + corrimientoY, tamanoCirculo, tamanoCirculo);
+      } else if (tiempo < DURACION_BUCLE_MS) {
+        indiceActual = 0;
+        imagenActual = imagenes[0];
+        imagenAjustada = imagenActual.get();
+        imagenAjustada.resize(width, height);
+        inicio = millis();
       }
     }
 
-    function updateImageByTime(t) {
-      if (!images.length) return;
-      const nextIndex = floor(t / IMAGE_SWITCH_MS) % images.length;
-      if (nextIndex === currentImgIndex) return;
-      currentImgIndex = nextIndex;
-      img = images[currentImgIndex];
-      imgResized = img.get();
-      imgResized.resize(width, height);
+    function actualizarImagen(tiempo) {
+      if (!imagenes.length) return;
+      const siguienteIndice = floor(tiempo / CAMBIO_IMAGEN_MS) % imagenes.length;
+      if (siguienteIndice === indiceActual) return;
+      indiceActual = siguienteIndice;
+      imagenActual = imagenes[indiceActual];
+      imagenAjustada = imagenActual.get();
+      imagenAjustada.resize(width, height);
     }
 
-    function getContainerLimits() {
-      const container = document.getElementById("p5-container");
-      const rect = container.getBoundingClientRect();
-      const maxW = Math.max(280, rect.width);
-      const maxH = Math.max(240, window.innerHeight - 180);
-      return { maxW, maxH };
+    function limitesContenedor() {
+      const contenedor = document.getElementById("contenedor-visual");
+      const rectangulo = contenedor.getBoundingClientRect();
+      const maximoAncho = Math.max(280, rectangulo.width);
+      const maximoAlto = Math.max(240, window.innerHeight - 180);
+      return { maximoAncho, maximoAlto };
     }
 
-    function adjustCanvas() {
-      let aspectRatio = img.width / img.height;
-      let limits = getContainerLimits();
-      let w = limits.maxW;
-      let h = w / aspectRatio;
+    function ajustarLienzo() {
+      let proporcion = imagenActual.width / imagenActual.height;
+      let limites = limitesContenedor();
+      let ancho = limites.maximoAncho;
+      let alto = ancho / proporcion;
 
-      if (h > limits.maxH) {
-        h = limits.maxH;
-        w = h * aspectRatio;
+      if (alto > limites.maximoAlto) {
+        alto = limites.maximoAlto;
+        ancho = alto * proporcion;
       }
 
-      if (!canvas) {
-        canvas = createCanvas(w, h);
-        canvas.parent("p5-container");
+      if (!lienzo) {
+        lienzo = createCanvas(ancho, alto);
+        lienzo.parent("contenedor-visual");
       } else {
-        resizeCanvas(w, h);
+        resizeCanvas(ancho, alto);
       }
 
-      imgResized = img.get();
-      imgResized.resize(width, height);
+      imagenAjustada = imagenActual.get();
+      imagenAjustada.resize(width, height);
     }
 
     function windowResized() {
-      adjustCanvas();
+      ajustarLienzo();
     }
   </script>
 </body>
